@@ -9,7 +9,11 @@
 
 #### Installing The Correct Node Version Using NVM
 
-Dark Forest is built and tested using Node.js v14.15.x and might not run properly on other Node.js versions. We recommend using NVM to switch between multiple Node.js version on your machine.
+Dark Forest is built and tested using Node.js v14.15.x and might not run properly on other Node.js versions. We
+
+For Windows: Install node.js from their site, I've tested it working with v14.17.
+
+For Linux: Dark Forest team recommends using NVM to switch between multiple Node.js version on your machine.
 
 ```sh
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
@@ -24,9 +28,25 @@ Refer to [Yarn's official documentation](https://classic.yarnpkg.com/en/docs/ins
 
 After you have Yarn installed, run `yarn` to install the dependencies:
 
+### Installing the client
+
+After you have node.js and yarn installed, `git clone` this repo and run `yarn` inside the base folder. It should take a few minutes to install and build all the required dependencies. If it fails anywhere in this process, do not try and recover. Fix what you think the issue was, but then **delete and re-clone the entire folder** before running `yarn` again.
+
 ### Running the client
 
 To connecting to the mainnet client, simply run `yarn start:prod`. When asked you can use your whitelist key or import your mainnet burner secret and home coordinates.
+
+For Windows: create a .bat file that contains:
+```
+set NODE_ENV=production
+yarn start:prod
+```
+
+For Linux: create a script that contains:
+```
+NODE_ENV=production
+yarn start:prod
+```
 
 ### Plugin development
 
