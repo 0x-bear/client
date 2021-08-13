@@ -21,13 +21,15 @@ type ExtendedMinerManager = MinerManager & {
   patternType: string;
 };
 
-const { MinerManager: Miner, SwissCheesePattern, SpiralPattern } = df.getConstructors();
+const { MinerManager: Miner, SwissCheesePattern, SpiralPattern, CirclePattern } = df.getConstructors();
 
 const NEW_CHUNK = 'DiscoveredNewChunk';
 
 function getPattern(coords: WorldCoords, patternType: string, chunkSize: number) {
   if (patternType === 'swiss') {
     return new SwissCheesePattern(coords, chunkSize);
+  } else if (patternType =='circle') {
+    return new CirclePattern(coords, chunkSize);
   } else {
     return new SpiralPattern(coords, chunkSize);
   }

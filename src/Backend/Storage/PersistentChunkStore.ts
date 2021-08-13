@@ -82,12 +82,22 @@ class PersistentChunkStore implements ChunkStore {
         db.createObjectStore(ObjectStore.PLUGINS);
       },
     });
-
+   
     const localStorageManager = new PersistentChunkStore(db, account);
 
     await localStorageManager.loadChunks();
 
     return localStorageManager;
+  }
+
+  public wipeMap(account: EthAddress) {
+    this.db.clear(ObjectStore.BOARD);
+    //this.db.deleteObjectStore(ObjectStore.BOARD);
+    this.chunkMap=new Map;
+  }
+
+  public wipeUnconfirmedTxns(account: EthAddress) {
+    this.db.deleteObjectStore(ObjectStore.UNCONFIRMED_ETH_TXS);
   }
 
   public setDiagnosticUpdater(diagnosticUpdater?: DiagnosticUpdater) {
@@ -273,7 +283,9 @@ class PersistentChunkStore implements ChunkStore {
   }
 
   public hasMinedChunk(chunkLoc: Rectangle): boolean {
-    return !!this.getChunkByFootprint(chunkLoc);
+    const foundChunk = this.getChunkByFootprint(chunkLoc);
+    if (!!foundChunk) { console.log(foundChunk); };
+    return !!foundChunk;
   }
 
   private getChunkById(chunkId: ChunkId): Chunk | undefined {

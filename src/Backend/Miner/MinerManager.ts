@@ -249,24 +249,32 @@ class MinerManager extends EventEmitter {
     // this function may return undefined if user chooses to stop exploring or changes mining pattern in the middle of its resolution
     // so any function calling it should handle the undefined case appropriately
     let candidateChunk = chunkLocation;
-    let count = 10000;
-    while (!this.isValidExploreTarget(candidateChunk) && count > 0) {
+    let count = 1; //original 10k
+    let isValid = false;
+    while (!isValid && count > 0) {
       candidateChunk = this.miningPattern.nextChunk(candidateChunk);
+      isValid = this.isValidExploreTarget(candidateChunk);
+      if (!isValid) {
+        console.log('invalid chunk');
+      }
+      console.log('count= '+count);      
       count -= 1;
     }
     // since user might have switched jobs or stopped exploring during the above loop
     if (!this.isExploring && jobId !== this.currentJobId) {
+      console.log('returning underfined');
       return undefined;
     }
-    if (this.isValidExploreTarget(candidateChunk)) {
+    if (isValid) {
+      console.log('returning candidate');
       return candidateChunk;
     }
-    return new Promise((resolve) => {
-      setTimeout(async () => {
-        const nextNextChunk = await this.nextValidExploreTarget(candidateChunk, jobId);
-        resolve(nextNextChunk);
-      }, 0);
-    });
+    // return new Promise((resolve) => {
+    //   setTimeout(async () => {
+    //     const nextNextChunk = await this.nextValidExploreTarget(candidateChunk, jobId);
+    //     resolve(nextNextChunk);
+    //   }, 0);
+    // });
   }
 
   private isValidExploreTarget(chunkLocation: Rectangle): boolean {
@@ -276,9 +284,11 @@ class MinerManager extends EventEmitter {
     const xMinAbs = Math.abs(xCenter) - sideLength / 2;
     const yMinAbs = Math.abs(yCenter) - sideLength / 2;
     const squareDist = xMinAbs ** 2 + yMinAbs ** 2;
+    console.log('checking validity '+bottomLeft.x+','+bottomLeft.y);
     // should be inbounds, and unexplored
     return (
       squareDist < this.worldRadius ** 2 && !this.minedChunksStore.hasMinedChunk(chunkLocation)
+      //squareDist < this.worldRadius ** 2
     );
   }
 

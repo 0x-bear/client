@@ -82,7 +82,7 @@ import { monomitter, Monomitter, Subscription } from '../../Frontend/Utils/Monom
 import { TerminalTextStyle } from '../../Frontend/Utils/TerminalTypes';
 import UIEmitter from '../../Frontend/Utils/UIEmitter';
 import { TerminalHandle } from '../../Frontend/Views/Terminal';
-import { MiningPattern, SpiralPattern, SwissCheesePattern } from '../Miner/MiningPatterns';
+import { MiningPattern, SpiralPattern, SwissCheesePattern, CirclePattern } from '../Miner/MiningPatterns';
 import EthConnection from '../Network/EthConnection';
 import { ThrottledConcurrentQueue } from '../Network/ThrottledConcurrentQueue';
 import { getAllTwitters, verifyTwitterHandle } from '../Network/UtilityServerAPI';
@@ -252,7 +252,7 @@ class GameManager extends EventEmitter {
   /**
    * Manages the process of mining new space territory.
    */
-  private minerManager?: MinerManager;
+  public minerManager?: MinerManager;
 
   /**
    * Continuously updated value representing the total hashes per second that the game is currently
@@ -463,6 +463,18 @@ class GameManager extends EventEmitter {
     clearInterval(this.balanceInterval);
     clearInterval(this.playerInterval);
     this.settingsSubscription?.unsubscribe();
+  }
+
+  public resetChunkStore(
+    ethConnection: EthConnection,
+    terminal: React.MutableRefObject<TerminalHandle | undefined>
+  )  {
+    if (!terminal.current) {
+      throw new Error('you must pass in a handle to a terminal');
+    }
+    const account = ethConnection.getAddress();
+    terminal.current?.println('Wiping map...');
+    const persistentChunkStore = PersistentChunkStore.create(account);
   }
 
   static async create(
@@ -1071,7 +1083,7 @@ class GameManager extends EventEmitter {
   private initMiningManager(homeCoords: WorldCoords): void {
     if (this.minerManager) return;
 
-    const myPattern: MiningPattern = new SpiralPattern(homeCoords, MIN_CHUNK_SIZE);
+    const myPattern: MiningPattern = new CirclePattern(homeCoords, MIN_CHUNK_SIZE);
 
     this.minerManager = MinerManager.create(
       this.persistentChunkStore,
@@ -1579,7 +1591,7 @@ class GameManager extends EventEmitter {
         };
         this.handleTxIntent(txIntent as TxIntent);
         const callArgs = await this.snarkHelper.getInitArgs(x, y, this.worldRadius);
-        this.initMiningManager(loc.coords); // get an early start
+        //this.initMiningManager(loc.coords); // get an early start
 
         // if player initialization causes an error, give the caller an opportunity
         // to resolve that error. if the asynchronous `beforeRetry` function returns
@@ -1694,7 +1706,7 @@ class GameManager extends EventEmitter {
         }
       }
 
-      const pattern: MiningPattern = new SpiralPattern({ x, y }, MIN_CHUNK_SIZE);
+      const pattern: MiningPattern = new CirclePattern({ x, y }, MIN_CHUNK_SIZE);
       const chunkStore = new HomePlanetMinerChunkStore(
         initPerlinMin,
         initPerlinMax,
@@ -2822,6 +2834,7 @@ class GameManager extends EventEmitter {
       MinerManager,
       SpiralPattern,
       SwissCheesePattern,
+      CirclePattern
     };
   }
 

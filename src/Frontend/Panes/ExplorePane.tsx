@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { WorldCoords } from '@darkforest_eth/types';
 import TutorialManager, { TutorialState } from '../../Backend/GameLogic/TutorialManager';
-import { SpiralPattern } from '../../Backend/Miner/MiningPatterns';
+import { CirclePattern } from '../../Backend/Miner/MiningPatterns';
 import { IconButton } from '../Components/IconButton';
 import { TargetIcon, PauseIcon, PlayIcon } from '../Components/Icons';
 import { Coords, Sub } from '../Components/Text';
@@ -144,10 +144,10 @@ export function ExplorePane() {
     }
   }, [mining, uiManager]);
 
-  const [pattern, setPattern] = useState<SpiralPattern | undefined>(undefined);
+  const [pattern, setPattern] = useState<CirclePattern | undefined>(undefined);
   useEffect(() => {
     if (!uiManager) return;
-    setPattern(uiManager.getMiningPattern() as SpiralPattern | undefined);
+    setPattern(uiManager.getMiningPattern() as CirclePattern | undefined);
   }, [uiManager]);
 
   useEffect(() => {
@@ -158,7 +158,7 @@ export function ExplorePane() {
     };
 
     const updatePattern = (worldCoords: WorldCoords) => {
-      const newpattern = new SpiralPattern(worldCoords, MIN_CHUNK_SIZE);
+      const newpattern = new CirclePattern(worldCoords, MIN_CHUNK_SIZE);
       uiManager?.setMiningPattern(newpattern);
       setPattern(newpattern);
 
@@ -180,7 +180,7 @@ export function ExplorePane() {
     else windowManager.setCursorState(CursorState.TargetingExplorer);
   };
 
-  const getCorner = (pattern: SpiralPattern): WorldCoords => ({
+  const getCorner = (pattern: CirclePattern): WorldCoords => ({
     x: pattern.fromChunk.bottomLeft.x,
     y: pattern.fromChunk.bottomLeft.y,
   });
