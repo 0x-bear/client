@@ -95,7 +95,7 @@ class GameUIManager extends EventEmitter {
   private forcesSending: { [key: string]: number } = {}; // this is a percentage
   private silverSending: { [key: string]: number } = {}; // this is a percentage
 
-  private artifactSending: { [key: string]: Artifact | undefined } = {};
+  private artifactSending: { [key: string]: Artifact | 0 | undefined } = {};
 
   private plugins: PluginManager;
 
@@ -573,7 +573,7 @@ class GameUIManager extends EventEmitter {
     this.silverSending[planetId] = percentage;
   }
 
-  public setArtifactSending(planetId: LocationId, artifact?: Artifact) {
+  public setArtifactSending(planetId: LocationId, artifact?: Artifact | 0) {
     this.artifactSending[planetId] = artifact;
   }
 
@@ -894,21 +894,29 @@ class GameUIManager extends EventEmitter {
   /**
    * Percent from 0 to 100.
    */
-  public getForcesSending(planetId: LocationId): number {
-    const forces = this.forcesSending[planetId];
-    return forces ?? 80;
+  public getForcesSending(planetId?: LocationId): number {
+    const DEFAULT_FORCES_SENDING = 80;
+    if (!planetId) return DEFAULT_FORCES_SENDING;
+    return this.forcesSending[planetId] ?? DEFAULT_FORCES_SENDING;
   }
 
   /**
    * Percent from 0 to 100.
    */
-  public getSilverSending(planetId: LocationId): number {
-    return this.silverSending[planetId] ?? 100;
+  public getSilverSending(planetId?: LocationId): number {
+    const DEFAULT_SILVER_SENDING = 100;
+    if (!planetId) return DEFAULT_SILVER_SENDING;
+    return this.silverSending[planetId] ?? DEFAULT_SILVER_SENDING;
   }
 
-  public getArtifactSending(planetId: LocationId): Artifact | undefined {
-    if (this.artifactSending[planetId]) {
-      return this.artifactSending[planetId];
+  public getArtifactSending(planetId?: LocationId): Artifact | undefined {
+    const artifact = planetId ? this.artifactSending[planetId] : undefined;
+    if (artifact != null) {
+      if (artifact !== 0) {
+        return artifact;
+      } else {
+        return undefined;
+      }
     } else {
       const planet = this.getPlanetWithId(planetId);
       if (!planet) return;

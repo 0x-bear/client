@@ -4,7 +4,6 @@ import React, { Dispatch, SetStateAction, useCallback, useEffect, useState } fro
 import styled, { css } from 'styled-components';
 import { formatNumber } from '../../Backend/Utils/Utils';
 import { Wrapper } from '../../Backend/Utils/Wrapper';
-import { Hook } from '../../_types/global/GlobalTypes';
 import { ArtifactImage } from '../Components/ArtifactImage';
 import { CenteredText, EmSpacer, FullWidth, ShortcutButton, Spacer } from '../Components/CoreUI';
 import { EnergyIcon, SilverIcon } from '../Components/Icons';
@@ -12,12 +11,9 @@ import { LongDash, Sub, Subber } from '../Components/Text';
 import WindowManager, { CursorState } from '../Game/WindowManager';
 import dfstyles from '../Styles/dfstyles';
 import { useOnSendCompleted, usePlanetInactiveArtifacts, useUIManager } from '../Utils/AppHooks';
-import { SpecialKey, useIsDown, useOnUp } from '../Utils/KeyEmitters';
+import { useOnUp } from '../Utils/KeyEmitters';
 import { EXIT_PANE, TOGGLE_SEND } from '../Utils/ShortcutConstants';
 import UIEmitter, { UIEmitterEvent } from '../Utils/UIEmitter';
-
-const DEFAULT_ENERGY_PERCENT = 80;
-const DEFAULT_SILVER_PERCENT = 100;
 
 const StyledSendResources = styled.div``;
 
@@ -215,34 +211,27 @@ const StyledArtifactThumb = styled.div<{ active: boolean }>`
 
 function ArtifactThumb({
   artifact,
-  sendArtifact,
-  setSendArtifact,
+  active,
+  updateArtifactSending,
 }: {
-  sendArtifact?: Artifact | undefined;
-  setSendArtifact?: Hook<Artifact | undefined>[1];
+  active: boolean;
+  updateArtifactSending: (a: Artifact) => void;
   artifact: Artifact;
 }) {
-  const click = useCallback(() => {
-    if (!setSendArtifact) return;
-
-    if (artifact.id === sendArtifact?.id) setSendArtifact(undefined);
-    else setSendArtifact(artifact);
-  }, [setSendArtifact, artifact, sendArtifact]);
-
   return (
-    <StyledArtifactThumb active={sendArtifact?.id === artifact.id} onClick={click}>
+    <StyledArtifactThumb active={active} onClick={() => updateArtifactSending(artifact)}>
       <ArtifactImage artifact={artifact} thumb size={32} />
     </StyledArtifactThumb>
   );
 }
 
 function SelectArtifactRow({
-  sendArtifact,
-  setSendArtifact,
+  sendingArtifact,
+  updateArtifactSending,
   inactiveArtifacts,
 }: {
-  sendArtifact: Artifact | undefined;
-  setSendArtifact: Hook<Artifact | undefined>[1];
+  sendingArtifact: Artifact | undefined;
+  updateArtifactSending: (a: Artifact) => void;
   inactiveArtifacts: Artifact[];
 }) {
   return (
@@ -252,8 +241,8 @@ function SelectArtifactRow({
           <ArtifactThumb
             artifact={a}
             key={a.id}
-            sendArtifact={sendArtifact}
-            setSendArtifact={setSendArtifact}
+            active={sendingArtifact?.id === a.id}
+            updateArtifactSending={updateArtifactSending}
           />
         ))}
       {inactiveArtifacts.length === 0 && <Sub>No movable artifacts!</Sub>}
@@ -316,33 +305,42 @@ export function SendResources({
   planetWrapper: Wrapper<Planet | undefined>;
 }) {
   const uiManager = useUIManager();
-  const energyHook = useState<number>(
-    p.value && uiManager.getForcesSending(p.value.locationId)
-      ? uiManager.getForcesSending(p.value.locationId)
-      : DEFAULT_ENERGY_PERCENT
-  );
-  const [energyPercent, setEnergyPercent] = energyHook;
-  const silverHook = useState<number>(
-    p.value && uiManager.getSilverSending(p.value.locationId)
-      ? uiManager.getSilverSending(p.value.locationId)
-      : DEFAULT_SILVER_PERCENT
-  );
-  const [silverPercent, setSilverPercent] = silverHook;
   const [sending, setSending] = useState<boolean>(false);
 
   const windowManager = WindowManager.getInstance();
 
+  const getEnergySending = useCallback(() => {
+    return uiManager.getForcesSending(p?.value?.locationId);
+  }, [p, uiManager]);
+
   const updateEnergySending = useCallback((energyPercent) => {
     if (!p.value || !uiManager) return;
     uiManager.setForcesSending(p.value.locationId, energyPercent);
-    setEnergyPercent(energyPercent);
-  }, [p, uiManager, setEnergyPercent]);
+  }, [p, uiManager]);
+
+  const getSilverSending = useCallback(() => {
+    return uiManager.getSilverSending(p?.value?.locationId);
+  }, [p, uiManager]);
 
   const updateSilverSending = useCallback((silverPercent) => {
     if (!p.value || !uiManager) return;
     uiManager.setSilverSending(p.value.locationId, silverPercent);
-    setSilverPercent(silverPercent);
-  }, [p, uiManager, setSilverPercent]);
+  }, [p, uiManager]);
+
+  const getArtifactSending = useCallback(() => {
+    return uiManager.getArtifactSending(p?.value?.locationId);
+  }, [p, uiManager]);
+
+  const updateArtifactSending = useCallback((sendArtifact) => {
+    if (!p.value || !uiManager) return;
+    uiManager.setArtifactSending(p.value.locationId, sendArtifact);
+  }, [p, uiManager]);
+
+  const removeArtifactSending = useCallback(() => {
+    if (!p.value || !uiManager) return;
+    // Using 0 as a dummy value to remove artifacts
+    uiManager.setArtifactSending(p.value.locationId, 0);
+  }, [p, uiManager]);
 
   useEffect(() => {
     const uiEmitter = UIEmitter.getInstance();
@@ -387,10 +385,10 @@ export function SendResources({
   });
 
   useOnUp('-', () => {
-    updateEnergySending(_.clamp(energyPercent - 10, 0, 100));
+    updateEnergySending(_.clamp(getEnergySending() - 10, 0, 100));
   }, [updateEnergySending]);
   useOnUp('+', () => {
-    updateEnergySending(_.clamp(energyPercent + 10, 0, 100));
+    updateEnergySending(_.clamp(getEnergySending() + 10, 0, 100));
   }, [updateEnergySending]);
 
   useOnSendCompleted(() => {
@@ -398,54 +396,27 @@ export function SendResources({
     windowManager.setCursorState(CursorState.Normal);
   });
 
-  /* sending artifacts stuff */
-  const [sendArtifact, setSendArtifact] = useState<Artifact | undefined>(undefined);
-  const artifactProps = { sendArtifact, setSendArtifact };
-
-  useEffect(() => {
-    if (!p.value || !sendArtifact) return;
-
-    // kill the artifact once the move is made
-    if (!p.value.heldArtifactIds.includes(sendArtifact.id)) {
-      setSendArtifact(undefined);
-    }
-
-    // kill the artifact when the move is pending
-    for (const v of p.value.unconfirmedDepartures) {
-      if (v.artifact === sendArtifact.id) {
-        setSendArtifact(undefined);
-        return;
-      }
-    }
-  }, [p, sendArtifact]);
-
-  useEffect(() => {
-    if (!p.value) return;
-    uiManager.setArtifactSending(p.value.locationId, sendArtifact);
-  }, [sendArtifact, uiManager, p]);
-
-  const removeArtifact = useCallback(() => setSendArtifact(undefined), [setSendArtifact]);
   const artifacts = usePlanetInactiveArtifacts(p, uiManager);
 
   return (
     <StyledSendResources>
-      <ResourceBar selected={p.value} value={energyPercent} setValue={updateEnergySending} />
+      <ResourceBar selected={p.value} value={getEnergySending()} setValue={updateEnergySending} />
       {p.value && p.value.silver > 0 && (
         <ResourceBar
           selected={p.value}
-          value={silverPercent}
+          value={getSilverSending()}
           setValue={updateSilverSending}
           isSilver
         />
       )}
       {p.value && artifacts.length > 0 && (
         <>
-          <SelectArtifactRow inactiveArtifacts={artifacts} {...artifactProps} />
+          <SelectArtifactRow sendingArtifact={getArtifactSending()} inactiveArtifacts={artifacts} updateArtifactSending={updateArtifactSending} />
           <EmSpacer height={0.5} />
         </>
       )}
 
-      <SendRow artifact={sendArtifact} remove={removeArtifact} doSend={doSend} sending={sending} />
+      <SendRow artifact={getArtifactSending()} remove={removeArtifactSending} doSend={doSend} sending={sending} />
     </StyledSendResources>
   );
 }
