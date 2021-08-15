@@ -192,7 +192,7 @@ export class ContractsAPI extends EventEmitter {
       throw new Error('xDAI balance too low!');
     }
 
-    const gasFeeGwei = EthersBN.from(txRequest.overrides.gasPrice || '1000000000');
+    const gasFeeGwei = EthersBN.from((txRequest.overrides.gasPrice || '1000000000')*1.01);
 
     await openConfirmationWindowForTransaction(this.ethConnection, txRequest, address, gasFeeGwei);
   }
