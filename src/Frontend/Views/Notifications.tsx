@@ -125,7 +125,7 @@ export function NotificationsPane() {
         const newArr = _.clone(arr);
         for (let i = 0; i < arr.length; i++) {
           if (arr[i].id === notif.id) {
-            if (notif.txStatus === EthTxStatus.Confirm) newArr.splice(i, 1);
+            if (notif.txStatus === 2) newArr.splice(i, 1); // make confirmations disappear
             else newArr[i] = notif;
             return newArr;
           }
