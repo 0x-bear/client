@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import Button from './Button';
-import dfstyles from '../Styles/dfstyles';
 import {
   EmailResponse,
   submitInterestedEmail,
   submitUnsubscribeEmail,
 } from '../../Backend/Network/UtilityServerAPI';
+import dfstyles from '../Styles/dfstyles';
+import Button from './Button';
 import { Green, Red, Sub } from './Text';
 
-export enum EmailCTAMode {
+export const enum EmailCTAMode {
   SUBSCRIBE,
   UNSUBSCRIBE,
 }
@@ -98,6 +98,7 @@ export const EmailCTA = ({ mode }: { mode: EmailCTAMode }) => {
         <p
           style={{
             marginRight: '14pt',
+            color: dfstyles.colors.text,
           }}
         >
           {mode === EmailCTAMode.SUBSCRIBE ? 'info' : 'unsubscribe'}:

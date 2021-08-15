@@ -1,87 +1,115 @@
+import { EthAddress, Planet } from '@darkforest_eth/types';
 import React, { useCallback } from 'react';
-import { Planet } from '@darkforest_eth/types';
 import styled from 'styled-components';
 import {
   enoughEnergyToProspect,
   isFindable,
   isProspectable,
 } from '../../Backend/GameLogic/ArrivalUtils';
-import { SpacedFlexRow } from '../Components/FlexRows';
-import { Btn } from '../Components/Btn';
-import { Sub } from '../Components/Text';
-import { ModalHook } from './ModalPane';
-import dfstyles from '../Styles/dfstyles';
-import { Wrapper } from '../../Backend/Utils/Wrapper';
-import { LoadingSpinner } from '../Components/LoadingSpinner';
-import { useUIManager } from '../Utils/AppHooks';
 import { GameObjects } from '../../Backend/GameLogic/GameObjects';
+import { Wrapper } from '../../Backend/Utils/Wrapper';
+import { isLocatable } from '../../_types/global/GlobalTypes';
+import { Btn } from '../Components/Btn';
+import { Display } from '../Components/CoreUI';
+import { SpacedFlexRow } from '../Components/FlexRows';
+import { AccountLabel } from '../Components/Labels/Labels';
+import { LoadingSpinner } from '../Components/LoadingSpinner';
+import { Sub } from '../Components/Text';
+import dfstyles from '../Styles/dfstyles';
+import { useUIManager } from '../Utils/AppHooks';
 import { EmojiPlanetNotification } from './EmojiPlanetNotification';
 
-export enum PlanetNotifType {
+export const enum PlanetNotifType {
   PlanetCanUpgrade,
   CanProspect,
   CanFindArtifact,
-  MaxSilver,
+  Claimed,
+  DistanceFromCenter,
   CanAddEmoji,
 }
 
 const StyledPlanetNotifications = styled.div`
   font-size: ${dfstyles.fontSizeXS};
-`;
 
-export type PlanetNotifHooks = {
-  upgradeDetHook: ModalHook;
-};
+  > div {
+    margin-bottom: 4px;
+
+    &:last {
+      margin-bottom: 0;
+    }
+  }
+`;
 
 export function getNotifsForPlanet(
   planet: Planet | undefined,
+  account: EthAddress | undefined,
   currentBlockNumber: number | undefined
 ): PlanetNotifType[] {
   const notifs: PlanetNotifType[] = [];
   if (!planet) return notifs;
-  if (GameObjects.planetCanUpgrade(planet)) notifs.push(PlanetNotifType.PlanetCanUpgrade);
-  if (isProspectable(planet) && enoughEnergyToProspect(planet))
-    notifs.push(PlanetNotifType.CanProspect);
-  if (isFindable(planet, currentBlockNumber)) notifs.push(PlanetNotifType.CanFindArtifact);
-  if (planet.silver / planet.silverCap > 0.995) notifs.push(PlanetNotifType.MaxSilver);
 
-  notifs.push(PlanetNotifType.CanAddEmoji);
+  if (planet?.owner === account && account !== undefined) {
+    if (GameObjects.planetCanUpgrade(planet)) notifs.push(PlanetNotifType.PlanetCanUpgrade);
+    if (isProspectable(planet) && enoughEnergyToProspect(planet))
+      notifs.push(PlanetNotifType.CanProspect);
+    if (isFindable(planet, currentBlockNumber)) notifs.push(PlanetNotifType.CanFindArtifact);
+    notifs.push(PlanetNotifType.CanAddEmoji);
+  }
+
+  if (planet.claimer !== undefined) notifs.push(PlanetNotifType.Claimed);
+  notifs.push(PlanetNotifType.DistanceFromCenter);
 
   return notifs;
 }
-
-const Wrap = styled.div`
-  width: 100%;
-  height: fit-content;
-`;
 
 function EmojiRow({ wrapper }: { wrapper: Wrapper<Planet | undefined> }) {
   return <EmojiPlanetNotification wrapper={wrapper} />;
 }
 
-const PlanetCanUpgradeRow = ({ upgradeDetHook }: PlanetNotifHooks) => (
+const PlanetCanUpgradeRow = () => (
   <SpacedFlexRow>
     <Sub>This planet can upgrade!</Sub>
-    <Btn onClick={() => upgradeDetHook[1](true)}>View</Btn>
   </SpacedFlexRow>
 );
 
-const PlanetMaxSilverRow = () => (
-  <SpacedFlexRow>
-    <Sub>This planet has max silver!</Sub>
-  </SpacedFlexRow>
-);
+export const DistanceFromCenterRow = ({ planet }: { planet: Wrapper<Planet | undefined> }) =>
+  planet.value && isLocatable(planet.value) ? (
+    <SpacedFlexRow>
+      <Sub>
+        Distance From Center:{' '}
+        {Math.floor(
+          Math.sqrt(
+            planet.value.location.coords.x ** 2 + planet.value.location.coords.y ** 2 + 0.001
+          )
+        ).toLocaleString()}
+      </Sub>
+    </SpacedFlexRow>
+  ) : (
+    <Sub>Unclaimed</Sub>
+  );
 
-function FindArtifactRow({ wrapper }: { wrapper: Wrapper<Planet | undefined> }) {
+export const PlanetClaimedRow = ({ planet }: { planet: Wrapper<Planet | undefined> }) =>
+  planet.value?.claimer ? (
+    <SpacedFlexRow>
+      <Sub>
+        Claimed by{' '}
+        <AccountLabel ethAddress={planet.value?.claimer} includeAddressIfHasTwitter={true} />
+      </Sub>
+    </SpacedFlexRow>
+  ) : (
+    <Sub>Unclaimed</Sub>
+  );
+
+function FindArtifactRow({ planet }: { planet: Wrapper<Planet | undefined> }) {
   const uiManager = useUIManager();
 
-  const locId = wrapper.value?.locationId;
+  const locId = planet.value?.locationId;
   const find = useCallback(() => locId && uiManager?.findArtifact(locId), [locId, uiManager]);
 
   return (
     <SpacedFlexRow>
       <Sub>Find an artifact on this Foundry for points!</Sub>
-      {wrapper.value?.unconfirmedFindArtifact ? (
+      {planet.value?.unconfirmedFindArtifact ? (
         <Sub>
           <LoadingSpinner initialText={'find...'} />
         </Sub>
@@ -92,17 +120,17 @@ function FindArtifactRow({ wrapper }: { wrapper: Wrapper<Planet | undefined> }) 
   );
 }
 
-function CanProspectRow({ wrapper }: { wrapper: Wrapper<Planet | undefined> }) {
+function CanProspectRow({ planet }: { planet: Wrapper<Planet | undefined> }) {
   const uiManager = useUIManager();
   const prospect = useCallback(
-    () => wrapper.value && uiManager?.prospectPlanet(wrapper.value.locationId),
-    [wrapper, uiManager]
+    () => planet.value && uiManager?.prospectPlanet(planet.value.locationId),
+    [planet, uiManager]
   );
 
   return (
     <SpacedFlexRow>
       <Sub>You can prospect this Foundry!</Sub>
-      {wrapper.value?.unconfirmedProspectPlanet ? (
+      {planet.value?.unconfirmedProspectPlanet ? (
         <Sub>
           <LoadingSpinner initialText={'prospect...'} />
         </Sub>
@@ -115,21 +143,34 @@ function CanProspectRow({ wrapper }: { wrapper: Wrapper<Planet | undefined> }) {
 
 export function PlanetNotifications({
   notifs,
-  wrapper,
-  upgradeDetHook,
-}: { notifs: PlanetNotifType[]; wrapper: Wrapper<Planet | undefined> } & PlanetNotifHooks) {
+  planet,
+}: {
+  notifs: PlanetNotifType[];
+  planet: Wrapper<Planet | undefined>;
+}) {
   return (
     <StyledPlanetNotifications>
-      {notifs.map((notif) => (
-        <Wrap key={notif}>
-          {notif === PlanetNotifType.PlanetCanUpgrade && (
-            <PlanetCanUpgradeRow upgradeDetHook={upgradeDetHook} />
-          )}
-          {notif === PlanetNotifType.MaxSilver && <PlanetMaxSilverRow />}
-          {notif === PlanetNotifType.CanFindArtifact && <FindArtifactRow wrapper={wrapper} />}
-          {notif === PlanetNotifType.CanProspect && <CanProspectRow wrapper={wrapper} />}
-          {notif === PlanetNotifType.CanAddEmoji && <EmojiRow wrapper={wrapper} />}
-        </Wrap>
+      {notifs.map((notif, i) => (
+        <div key={i}>
+          <Display visible={notif === PlanetNotifType.PlanetCanUpgrade}>
+            <PlanetCanUpgradeRow />
+          </Display>
+          <Display visible={notif === PlanetNotifType.CanFindArtifact}>
+            <FindArtifactRow planet={planet} key={notif + (planet.value?.locationId + '')} />
+          </Display>
+          <Display visible={notif === PlanetNotifType.CanProspect}>
+            <CanProspectRow planet={planet} key={notif + (planet.value?.locationId + '')} />
+          </Display>
+          <Display visible={notif === PlanetNotifType.CanAddEmoji}>
+            <EmojiRow wrapper={planet} key={notif + (planet.value?.locationId + '')} />
+          </Display>
+          <Display visible={notif === PlanetNotifType.Claimed}>
+            <PlanetClaimedRow key={notif + (planet.value?.locationId + '')} planet={planet} />
+          </Display>
+          <Display visible={notif === PlanetNotifType.DistanceFromCenter}>
+            <DistanceFromCenterRow planet={planet} />
+          </Display>
+        </div>
       ))}
     </StyledPlanetNotifications>
   );

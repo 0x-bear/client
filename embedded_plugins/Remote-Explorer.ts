@@ -1,18 +1,16 @@
-import type { Chunk, MinerWorkerMessage } from '../src/_types/global/GlobalTypes';
-import type WebpackWorker from 'worker-loader!*';
-import type MinerManager from '../src/Backend/Miner/MinerManager';
 import type { WorldCoords } from '@darkforest_eth/types';
-
+//@ts-ignore
+import { locationIdFromDecStr } from 'https://cdn.skypack.dev/@darkforest_eth/serde';
 import {
   html,
   render,
-  useState,
   useEffect,
-  useLayoutEffect,
+  useState,
   //@ts-ignore
 } from 'https://unpkg.com/htm/preact/standalone.module.js';
-//@ts-ignore
-import { locationIdFromDecStr } from 'https://cdn.skypack.dev/@darkforest_eth/serde';
+import type WebpackWorker from 'worker-loader!*';
+import type MinerManager from '../src/Backend/Miner/MinerManager';
+import type { Chunk, MinerWorkerMessage } from '../src/_types/global/GlobalTypes';
 
 type ExtendedMinerManager = MinerManager & {
   url: string;
@@ -21,15 +19,22 @@ type ExtendedMinerManager = MinerManager & {
   patternType: string;
 };
 
-const { MinerManager: Miner, SwissCheesePattern, SpiralPattern } = df.getConstructors();
+const {
+  MinerManager: Miner,
+  SwissCheesePattern,
+  SpiralPattern,
+  TowardsCenterPattern,
+} = df.getConstructors();
 
 const NEW_CHUNK = 'DiscoveredNewChunk';
 
 function getPattern(coords: WorldCoords, patternType: string, chunkSize: number) {
   if (patternType === 'swiss') {
     return new SwissCheesePattern(coords, chunkSize);
-  } else {
+  } else if (patternType === 'spiral') {
     return new SpiralPattern(coords, chunkSize);
+  } else {
+    return new TowardsCenterPattern(coords, chunkSize);
   }
 }
 
@@ -147,8 +152,7 @@ function MinerUI({
 }) {
   const [hashRate, setHashRate] = useState(0);
 
-  // No idea why useEffect doesn't run
-  useLayoutEffect(() => {
+  useEffect(() => {
     const calcHash = (chunk: Chunk, miningTimeMillis: number) => {
       df.addNewChunk(chunk);
       const hashRate = chunk.chunkFootprint.sideLength ** 2 / (miningTimeMillis / 1000);
@@ -298,6 +302,7 @@ function App({
         <select style=${select} value=${patternType} onChange=${changePattern}>
           <option value="spiral">Spiral</option>
           <option value="swiss">Swiss</option>
+          <option value="towardsCenter">TowardsCenter</option>
         </select>
         <button style=${button} onClick=${add}>Explore!</button>
       </div>
