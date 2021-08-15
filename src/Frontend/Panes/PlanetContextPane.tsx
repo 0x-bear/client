@@ -18,6 +18,10 @@ import { PlanetCard, PlanetCardTitle } from '../Views/PlanetCard';
 import { getNotifsForPlanet, PlanetNotifications } from '../Views/PlanetNotifications';
 import { SendResources } from '../Views/SendResources';
 
+const canvas = document.createElement('canvas');
+canvas.height = 100;
+canvas.width = 100;
+
 function PlanetContextPaneContent({
   modal,
   planet,
@@ -42,7 +46,7 @@ function PlanetContextPaneContent({
 
   return (
     <Padded style={{ width: '350px' }}>
-      <PlanetCard planetWrapper={planet} />
+      <PlanetCard planetWrapper={planet} canvas={canvas} />
       {owned && (
         <>
           <SendResources planetWrapper={planet} />

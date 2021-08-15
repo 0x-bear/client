@@ -33,6 +33,10 @@ const myPlanet = {
   destroyed: false,
 } as unknown as LocatablePlanet;
 
+const canvas = document.createElement('canvas');
+canvas.height = 100;
+canvas.width = 100;
+
 function Preview({ type, biome, level }: { type: PlanetType; biome: Biome; level: PlanetLevel }) {
   const [planet, setPlanet] = useState<LocatablePlanet>({ ...myPlanet });
 
@@ -49,7 +53,7 @@ function Preview({ type, biome, level }: { type: PlanetType; biome: Biome; level
   return (
     <div>
       <StyledPreview>
-        <PlanetPreviewImage planet={planet} />;
+        <PlanetPreviewImage planet={planet} canvas={canvas} />;
       </StyledPreview>
     </div>
   );

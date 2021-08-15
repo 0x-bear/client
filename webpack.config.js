@@ -13,7 +13,7 @@ const isProd = process.env.NODE_ENV === 'production';
 
 module.exports = {
   mode: 'production',
-  entry: ['react-hot-loader/patch', './src/Frontend/EntryPoints/index.tsx'],
+  entry: ['./src/Frontend/EntryPoints/index.tsx'],
   output: {
     path: path.join(__dirname, '/dist'),
     filename: 'bundle-[hash:6].min.js',
@@ -32,9 +32,6 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
     // we need this to reference files in the symlinked src/circuits directory
     symlinks: false,
-    alias: {
-      'react-dom': '@hot-loader/react-dom',
-    },
   },
 
   module: {

@@ -84,9 +84,11 @@ const ElevatedContainer = styled.div`
 export function PlanetCard({
   planetWrapper: p,
   standalone,
+  canvas,
 }: {
   planetWrapper: Wrapper<Planet | undefined>;
   standalone?: boolean;
+  canvas: HTMLCanvasElement;
 }) {
   const uiManager = useUIManager();
   const active = useActiveArtifact(p, uiManager);
@@ -121,21 +123,19 @@ export function PlanetCard({
         )}
 
         <FullWidth>
-          {experimentalFeatures && (
-            <ElevatedContainer
-              style={{
-                padding: '2px',
-                marginRight: '8px',
-                backgroundColor: 'rgba(0, 20, 80, 1.0)',
-                display: 'inline-flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                width: '110px',
-              }}
-            >
-              <PlanetPreview planet={planet} size={'50px'} />
-            </ElevatedContainer>
-          )}
+          <ElevatedContainer
+            style={{
+              padding: '2px',
+              marginRight: '8px',
+              backgroundColor: 'rgba(0, 20, 80, 1.0)',
+              display: 'inline-flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '110px',
+            }}
+          >
+            <PlanetPreview planet={planet} size={'50px'} canvas={canvas} />
+          </ElevatedContainer>
           <ElevatedContainer>
             <StatRow>
               <SpreadApart>

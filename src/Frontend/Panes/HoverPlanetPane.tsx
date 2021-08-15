@@ -13,6 +13,10 @@ const StyledHoverPlanetPane = styled.div`
   width: 350px;
 `;
 
+const canvas = document.createElement('canvas');
+canvas.height = 100;
+canvas.width = 100;
+
 /**
  * This is the pane that is rendered when you hover over a planet.
  */
@@ -84,7 +88,7 @@ export function HoverPlanetPane() {
       ref={paneRef}
       style={{ display: visible ? undefined : 'none', zIndex: GameWindowZIndex.Tooltip }}
     >
-      {visible && <PlanetCard standalone planetWrapper={hoverWrapper} />}
+      {visible && <PlanetCard standalone planetWrapper={hoverWrapper} canvas={canvas} />}
     </StyledHoverPlanetPane>
   );
 }

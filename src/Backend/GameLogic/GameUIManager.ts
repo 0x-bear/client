@@ -896,18 +896,38 @@ class GameUIManager extends EventEmitter {
    */
   public getForcesSending(planetId: LocationId): number {
     const forces = this.forcesSending[planetId];
-    return forces ?? 50;
+    return forces ?? 80;
   }
 
   /**
    * Percent from 0 to 100.
    */
   public getSilverSending(planetId: LocationId): number {
-    return this.silverSending[planetId] || 0;
+    return this.silverSending[planetId] ?? 100;
   }
 
   public getArtifactSending(planetId: LocationId): Artifact | undefined {
-    return this.artifactSending[planetId];
+    if (this.artifactSending[planetId]) {
+      return this.artifactSending[planetId];
+    } else {
+      const planet = this.getPlanetWithId(planetId);
+      if (!planet) return;
+      const artifactId = planet.heldArtifactIds.find(artifactId => {
+        const artifact = this.getArtifactWithId(artifactId);
+        if (!artifact) return false;
+        if (artifact.lastActivated) {
+          if (artifact.lastDeactivated && artifact.lastDeactivated > artifact.lastActivated) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+
+        return true;
+      });
+      if (!artifactId) return;
+      return this.getArtifactWithId(artifactId);
+    }
   }
 
   public isOverOwnPlanet(coords: WorldCoords): Planet | undefined {

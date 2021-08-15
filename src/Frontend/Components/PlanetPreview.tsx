@@ -1,7 +1,7 @@
 import { EMPTY_LOCATION_ID } from '@darkforest_eth/constants';
 import { Planet, PlanetType } from '@darkforest_eth/types';
 import autoBind from 'auto-bind';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import { MineRenderer } from '../Renderers/GameRenderer/Entities/MineRenderer';
 import PlanetRenderer from '../Renderers/GameRenderer/Entities/PlanetRenderer';
@@ -137,70 +137,33 @@ class PlanetPreviewRenderer extends WebGLManager {
   }
 }
 
-/**
- * The amount of instances of this is equal to the max amount of planet previews we have ever
- * displayed this session. We keep a pool of them because there's no clean way to clean up a webgl
- * context. If we didn't keep a pool, we would leak every time we rerenred a planet preview.
- */
-interface PlanetPreviewContext {
-  canvas: HTMLCanvasElement;
-  renderer: PlanetPreviewRenderer;
-}
-
-const cachedWebGlContexts: PlanetPreviewContext[] = [];
-
-function getContext() {
-  if (cachedWebGlContexts.length !== 0) {
-    return cachedWebGlContexts.pop();
-  }
-
-  const canvas = document.createElement('canvas');
-  canvas.height = 100;
-  canvas.width = 100;
-  const renderer = new PlanetPreviewRenderer(canvas);
-
-  return { canvas, renderer };
-}
-
-export function PlanetPreviewImage({ planet }: { planet: Planet | undefined }) {
-  const [containerRef, setContainerRef] = useState<HTMLDivElement | null>();
-  const [context, setContext] = useState<PlanetPreviewContext | undefined>();
+export function PlanetPreviewImage({ planet, canvas }: { planet: Planet | undefined, canvas: HTMLCanvasElement }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [renderer, _] = useState<PlanetPreviewRenderer>(() => new PlanetPreviewRenderer(canvas));
 
   // sync ref to renderer
   useEffect(() => {
-    if (!containerRef) return;
-
-    if (!context) {
-      setContext(getContext());
-      return;
-    }
-    if (containerRef.contains(context.canvas)) {
-      return;
-    }
-
-    containerRef.appendChild(context.canvas);
+    containerRef.current?.appendChild(canvas);
 
     return () => {
-      if (containerRef.contains(context.canvas)) {
-        containerRef.removeChild(context.canvas);
-        cachedWebGlContexts.push(context);
-        setContext(undefined);
+      if (containerRef.current?.contains(canvas)) {
+        containerRef.current.removeChild(canvas);
       }
     };
-  }, [context, containerRef]);
+  }, [containerRef, canvas]);
 
   // sync planet to renderer
   useEffect(() => {
-    context?.renderer?.setPlanet(planet);
-  }, [planet, context]);
+    renderer.setPlanet(planet);
+  }, [planet, renderer]);
 
-  return <div ref={setContainerRef}></div>;
+  return <div ref={containerRef}></div>;
 }
 
-export function PlanetPreview({ planet, size }: { planet: Planet | undefined; size: string }) {
+export function PlanetPreview({ planet, size, canvas }: { planet: Planet | undefined; size: string, canvas: HTMLCanvasElement }) {
   return (
     <PlanetPreviewWrapper size={size} color={'rgba(0,0,0,0)'}>
-      <PlanetPreviewImage planet={planet} />
+      <PlanetPreviewImage planet={planet} canvas={canvas} />
     </PlanetPreviewWrapper>
   );
 }
