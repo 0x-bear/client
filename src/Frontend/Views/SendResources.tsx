@@ -394,7 +394,11 @@ export function SendResources({
   useOnSendCompleted(() => {
     setSending(false);
     windowManager.setCursorState(CursorState.Normal);
-  });
+    if (p && p.value) {
+      // Set to undefined after SendComplete so it can send another one
+      uiManager.setArtifactSending(p.value.locationId, undefined);
+    }
+  }, [windowManager, p, uiManager]);
 
   const artifacts = usePlanetInactiveArtifacts(p, uiManager);
 

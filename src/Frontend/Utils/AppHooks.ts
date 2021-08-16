@@ -7,7 +7,7 @@ import {
   Planet,
   Player,
 } from '@darkforest_eth/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { DependencyList, useCallback, useEffect, useMemo, useState } from 'react';
 import { getActivatedArtifact, isActivated } from '../../Backend/GameLogic/ArtifactUtils';
 import GameUIManager from '../../Backend/GameLogic/GameUIManager';
 import { loadLeaderboard } from '../../Backend/Network/LeaderboardApi';
@@ -209,12 +209,12 @@ export function usePopAllOnSelectedPlanetChanged(
 /**
  * Calls {@code onCompleted} when the user sends a move via the ui.
  */
-export function useOnSendCompleted(onCompleted: () => void) {
+export function useOnSendCompleted(onCompleted: () => void, deps: DependencyList) {
   useEffect(() => {
     const uiEmitter = UIEmitter.getInstance();
     uiEmitter.on(UIEmitterEvent.SendCompleted, onCompleted);
     return () => {
       uiEmitter.removeListener(UIEmitterEvent.SendCompleted, onCompleted);
     };
-  }, [onCompleted]);
+  }, [onCompleted, ...deps]);
 }
