@@ -199,8 +199,8 @@ class GameUIManager extends EventEmitter {
     uiEmitter.removeListener(UIEmitterEvent.WorldMouseUp, this.onMouseUp);
     uiEmitter.removeListener(UIEmitterEvent.WorldMouseOut, this.onMouseOut);
 
-    uiEmitter.on(UIEmitterEvent.SendInitiated, this.onSendInit);
-    uiEmitter.on(UIEmitterEvent.SendCancelled, this.onSendCancel);
+    uiEmitter.removeListener(UIEmitterEvent.SendInitiated, this.onSendInit);
+    uiEmitter.removeListener(UIEmitterEvent.SendCancelled, this.onSendCancel);
 
     this.gameManager.removeListener(GameManagerEvent.PlanetUpdate, this.updatePlanets);
     this.gameManager.removeListener(

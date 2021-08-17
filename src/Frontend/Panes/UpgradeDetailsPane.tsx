@@ -100,6 +100,7 @@ export function UpgradeDetailsPane({
         <>
           <TabbedView
             tabTitles={['Defense', 'Range', 'Speed']}
+            defaultTabIndex={1}
             tabContents={(branch: UpgradeBranchName) => {
               const currentLevel = planet.upgradeState[branch];
               const branchAtMaxRank = !planet || planet.upgradeState[branch] >= 4;

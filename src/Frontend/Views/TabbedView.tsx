@@ -11,11 +11,13 @@ import dfstyles from '../Styles/dfstyles';
 export function TabbedView({
   tabTitles,
   tabContents,
+  defaultTabIndex,
 }: {
   tabTitles: string[];
   tabContents: (tabIndex: number) => React.ReactNode;
+  defaultTabIndex?: number;
 }) {
-  const [selectedTabIndex, setSelectedTabIndex] = useState(0);
+  const [selectedTabIndex, setSelectedTabIndex] = useState(defaultTabIndex ?? 0);
 
   return (
     <div>

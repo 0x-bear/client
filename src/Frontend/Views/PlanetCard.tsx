@@ -123,19 +123,21 @@ export function PlanetCard({
         )}
 
         <FullWidth>
-          <ElevatedContainer
-            style={{
-              padding: '2px',
-              marginRight: '8px',
-              backgroundColor: 'rgba(0, 20, 80, 1.0)',
-              display: 'inline-flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              width: '110px',
-            }}
-          >
-            <PlanetPreview planet={planet} size={'50px'} canvas={canvas} />
-          </ElevatedContainer>
+          {experimentalFeatures && (
+            <ElevatedContainer
+              style={{
+                padding: '2px',
+                marginRight: '8px',
+                backgroundColor: 'rgba(0, 20, 80, 1.0)',
+                display: 'inline-flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                width: '110px',
+              }}
+            >
+              <PlanetPreview planet={planet} size={'50px'} canvas={canvas} />
+            </ElevatedContainer>
+          )}
           <ElevatedContainer>
             <StatRow>
               <SpreadApart>
