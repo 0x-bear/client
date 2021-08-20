@@ -42,10 +42,10 @@ export class ViewportEntities {
   public getPlanetsAndChunks() {
     this.updateLocationsAndChunks();
 
-    this.cachedPlanets.forEach((p) => {
+    for (const p of this.cachedPlanets.values()) {
       p.planet.emojiBobAnimation?.update();
       p.planet.emojiZoopAnimation?.update();
-    });
+    }
 
     return {
       chunks: this.cachedExploredChunks,
@@ -90,7 +90,7 @@ export class ViewportEntities {
       // by definition, only planets that are owned can have planet messages on them, so they must
       // also be 'in the contract'
       if (p.planet.isInContract) {
-        planetIds.push(p.planet.locationId)
+        planetIds.push(p.planet.locationId);
       }
     }
 
