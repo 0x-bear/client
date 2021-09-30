@@ -1,32 +1,22 @@
-# Dark Forest Client
+# Custom Dark Forest Client
 
-## Development Guide
+my combination of useful custom client modifications for power users. history is as follows:
 
-### Installing Core Dependencies
+1. originally forked from https://github.com/adietrichs/client
+2. made minor changes to allow running under windows by default
+3. updated to include https://github.com/phated/v06-round3-client
 
-- Node (v14.x OR v16.x)
-- Yarn (Javascript Package Manager)
+## Installation
 
-#### Installing The Correct Node Version Using NVM
+1. Install latest version of Node from https://nodejs.org/en/download/
+2. Install yarn using `npm install --global yarn` since npm is now installed since it's bundled with Node.js
+3. Run `yarn` inside the `client` folder to install dependencies
 
-Dark Forest is built and tested using Node.js v14/v16 and might not run properly on other Node.js versions. We recommend using NVM to switch between multiple Node.js version on your machine.
+## Running
 
-```sh
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-nvm install
-```
+Run `runclient.bat` to run in Windows
 
-After the installation is finished, you can run `node --version` to verify that you are running v14 or v16
-
-#### Installing Yarn
-
-Refer to [Yarn's official documentation](https://classic.yarnpkg.com/en/docs/install) for the installation guide.
-
-After you have Yarn installed, run `yarn` to install the dependencies:
-
-### Running the client
-
-To connecting to the mainnet client, simply run `yarn start:prod`. When asked you can use your whitelist key or import your mainnet burner secret and home coordinates.
+When asked you can use your whitelist key or import your mainnet burner secret and home coordinates.
 
 ### Plugin development
 
