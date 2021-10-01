@@ -33,7 +33,5 @@ declarations
 
 /plugins
 /.idea
-yarn.lock
 /embedded_plugins
-*.bat
 *.lock
